@@ -120,7 +120,7 @@ BEGIN
     SELECT 
         uuid_generate_v4(), -- New UUID for participants
         e.id, -- Reference to migrated event
-        'guest',
+        'guest' as participant_type,
         jsonb_build_object(
             'name', COALESCE(wg.guest_name, ''),
             'email', COALESCE(wg.guest_email, ''),

@@ -72,7 +72,8 @@ INSERT INTO event_types (
         'participant_types', ARRAY['guest', 'family', 'vendor'],
         'form_layout', 'traditional',
         'supports_rsvp', true,
-        'supports_plus_one', true
+        'supports_plus_one', true,
+        'is_system_type', true
     ),
     '["bride_name", "groom_name", "wedding_date", "venue_name"]'::jsonb,
     '["ceremony_time", "reception_time", "dress_code", "meal_preferences"]'::jsonb,

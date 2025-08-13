@@ -1,9 +1,11 @@
-# FASE 0 TRANSFORMATION
+# FASE 0 TRANSFORMATION - PHASE 4
 **Wedding → Generic Event Management Engine**
 
 ## 🎯 Overview
 
 This directory contains the complete migration suite untuk transformasi sistem wedding invitation menjadi **Generic Event Management Engine** dengan **100% backward compatibility** dan **zero downtime**.
+
+**PHASE 4: Data Migration and Compatibility Layer** - Complete data transformation from wedding-specific tables to generic event structures with full backward compatibility.
 
 ---
 
@@ -30,13 +32,13 @@ This directory contains the complete migration suite untuk transformasi sistem w
 ### **Production Execution**
 ```bash
 # Dry run first (recommended)
-node execute_transformation.js --dry-run
+node execute_transformation.cjs --dry-run
 
 # Execute actual migration
-node execute_transformation.js
+node execute_transformation.cjs
 
 # Validate only (after migration)
-node execute_transformation.js --validate-only
+node execute_transformation.cjs --validate-only
 ```
 
 ### **Development & Testing**
@@ -45,10 +47,10 @@ node execute_transformation.js --validate-only
 npm test __tests__/database/structural-tests/phase-4-data-migration.test.cjs
 
 # Force execution (skip confirmations)
-node execute_transformation.js --force
+node execute_transformation.cjs --force
 
 # Rollback if needed
-node execute_transformation.js --rollback
+node execute_transformation.cjs --rollback
 ```
 
 ---
@@ -168,7 +170,7 @@ WHERE operation LIKE 'migration_%'
 ORDER BY started_at DESC;
 
 # Manual rollback
-node execute_transformation.js --rollback
+node execute_transformation.cjs --rollback
 ```
 
 #### **Performance Issues**
@@ -202,14 +204,14 @@ SELECT COUNT(*) FROM wedding_guests;
 2. Fix underlying issue (permissions, constraints, etc.)
 3. Resume dari failed migration:
    ```bash
-   node execute_transformation.js --force
+   node execute_transformation.cjs --force
    ```
 
 #### **Data Corruption Detected**
 1. Stop application immediately
 2. Execute emergency rollback:
    ```bash
-   node execute_transformation.js --rollback
+   node execute_transformation.cjs --rollback
    ```
 3. Restore from backup tables
 4. Investigate root cause

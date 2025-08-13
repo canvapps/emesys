@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS events (
     
     -- Event identification
     event_type_id UUID NOT NULL REFERENCES event_types(id) ON DELETE RESTRICT,
-    title VARCHAR(500) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     description TEXT,
     slug VARCHAR(200) UNIQUE,
     
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS events (
     published_at TIMESTAMP WITH TIME ZONE,
     
     -- Constraints
-    CONSTRAINT events_title_length CHECK (LENGTH(title) >= 5),
+    CONSTRAINT events_title_length CHECK (LENGTH(title) >= 3),
     CONSTRAINT events_valid_date_range CHECK (end_date IS NULL OR end_date >= event_date),
     CONSTRAINT events_slug_format CHECK (slug IS NULL OR slug ~ '^[a-z0-9-]+$')
 );
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS event_participants (
     
     -- Relationship
     event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-    participant_type VARCHAR(50) NOT NULL, -- guest, speaker, vendor, organizer, etc
+    participant_type VARCHAR(100) NOT NULL, -- guest, speaker, vendor, organizer, etc
     
     -- Contact information (flexible JSON structure)
     contact_info JSONB NOT NULL DEFAULT '{}', -- {name, email, phone, etc}

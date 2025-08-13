@@ -26,7 +26,7 @@ describe('PHASE 4: Data Migration Framework Validation', () => {
       '008_enhanced_indexing.sql', 
       '009_wedding_compatibility.sql',
       '010_wedding_data_migration.sql',
-      'execute_transformation.js',
+      'execute_transformation.cjs',
       'README.md'
     ];
 
@@ -42,7 +42,7 @@ describe('PHASE 4: Data Migration Framework Validation', () => {
           expect(content).toContain('COMMIT;');
         }
         
-        if (migrationFile === 'execute_transformation.js') {
+        if (migrationFile === 'execute_transformation.cjs') {
           expect(content).toContain('class TransformationExecutor');
           expect(content).toContain('dryRun');
           expect(content).toContain('rollback');
@@ -231,7 +231,7 @@ describe('PHASE 4: Data Migration Framework Validation', () => {
     let content;
     
     beforeAll(() => {
-      content = readMigrationFile('execute_transformation.js');
+      content = readMigrationFile('execute_transformation.cjs');
     });
 
     test('should have TransformationExecutor class', () => {
@@ -317,7 +317,7 @@ describe('PHASE 4: Data Migration Framework Validation', () => {
         '008_enhanced_indexing.sql',
         '009_wedding_compatibility.sql',
         '010_wedding_data_migration.sql',
-        'execute_transformation.js',
+        'execute_transformation.cjs',
         'README.md'
       ];
 
@@ -386,7 +386,7 @@ describe('PHASE 4: Data Migration Framework Validation', () => {
     });
 
     test('Migration framework should be production-ready', () => {
-      const executorContent = readMigrationFile('execute_transformation.js');
+      const executorContent = readMigrationFile('execute_transformation.cjs');
       
       const features = {
         hasClass: executorContent.includes('class TransformationExecutor'),

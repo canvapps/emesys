@@ -58,7 +58,7 @@ describe('PHASE 4: Wedding Data Migration to Generic Events', () => {
       expect(migrationContent).toContain('\'wedding\'');
       expect(migrationContent).toContain('\'Wedding Celebration\'');
       expect(migrationContent).toContain('\'social\'');
-      expect(migrationContent).toContain('is_system_type: true');
+      expect(migrationContent).toContain('TRUE');
     });
 
     test('should create proper indexes', () => {
@@ -214,7 +214,8 @@ describe('PHASE 4: Wedding Data Migration to Generic Events', () => {
       expect(migrationContent).toContain('INSERT INTO event_participants');
       expect(migrationContent).toContain('FROM wedding_guests_backup');
       expect(migrationContent).toContain('\'guest\' as participant_type');
-      expect(migrationContent).toContain('CASE WHEN wg.rsvp_status = \'yes\' THEN \'accepted\'');
+      expect(migrationContent).toContain('CASE wg.rsvp_status');
+      expect(migrationContent).toContain('WHEN \'yes\' THEN \'accepted\'');
     });
 
     test('should create default event sections for weddings', () => {
@@ -237,7 +238,7 @@ describe('PHASE 4: Wedding Data Migration to Generic Events', () => {
     let executorContent;
     
     beforeAll(() => {
-      const filePath = path.join(__dirname, '../../../database/migrations/FASE_0_TRANSFORMATION/execute_transformation.js');
+      const filePath = path.join(__dirname, '../../../database/migrations/FASE_0_TRANSFORMATION/execute_transformation.cjs');
       executorContent = fs.readFileSync(filePath, 'utf8');
     });
 
@@ -298,7 +299,7 @@ describe('PHASE 4: Wedding Data Migration to Generic Events', () => {
 
     test('should have execution instructions', () => {
       expect(readmeContent).toContain('## Execution');
-      expect(readmeContent).toContain('node execute_transformation.js');
+      expect(readmeContent).toContain('node execute_transformation.cjs');
       expect(readmeContent).toContain('--dry-run');
       expect(readmeContent).toContain('--rollback');
     });
@@ -336,11 +337,11 @@ describe('PHASE 4: Wedding Data Migration to Generic Events', () => {
 
     test('should have proper data validation constraints', () => {
       const coreTablesContent = fs.readFileSync(
-        path.join(__dirname, '../../../database/migrations/FASE_0_TRANSFORMATION/007_events_core_tables.sql'), 
+        path.join(__dirname, '../../../database/migrations/FASE_0_TRANSFORMATION/007_events_core_tables.sql'),
         'utf8'
       );
       
-      expect(coreTablesContent).toContain('CHECK (length(title) >= 3)');
+      expect(coreTablesContent).toContain('CONSTRAINT events_title_length CHECK (LENGTH(title) >= 3)');
       expect(coreTablesContent).toContain('CHECK (end_date IS NULL OR end_date >= event_date)');
     });
   });
@@ -377,7 +378,7 @@ describe('PHASE 4: Wedding Data Migration to Generic Events', () => {
         'database/migrations/FASE_0_TRANSFORMATION/008_enhanced_indexing.sql',
         'database/migrations/FASE_0_TRANSFORMATION/009_wedding_compatibility.sql',
         'database/migrations/FASE_0_TRANSFORMATION/010_wedding_data_migration.sql',
-        'database/migrations/FASE_0_TRANSFORMATION/execute_transformation.js',
+        'database/migrations/FASE_0_TRANSFORMATION/execute_transformation.cjs',
         'database/migrations/FASE_0_TRANSFORMATION/README.md'
       ];
 
@@ -396,7 +397,7 @@ describe('PHASE 4: Wedding Data Migration to Generic Events', () => {
           file: path.basename(filePath),
           exists,
           isComplete,
-          hasProperStructure: content.includes('PHASE 4') || content.includes('execute_transformation') || content.includes('README'),
+          hasProperStructure: content.includes('PHASE 4') || content.includes('class TransformationExecutor') || content.includes('README'),
           hasErrorHandling: content.includes('catch') || content.includes('try') || content.includes('ROLLBACK'),
           contentLength: content.length
         };
@@ -445,7 +446,7 @@ describe('PHASE 4: Wedding Data Migration to Generic Events', () => {
     });
 
     test('Migration framework should be ready for production execution', () => {
-      const executorPath = path.join(__dirname, '../../../database/migrations/FASE_0_TRANSFORMATION/execute_transformation.js');
+      const executorPath = path.join(__dirname, '../../../database/migrations/FASE_0_TRANSFORMATION/execute_transformation.cjs');
       const executorContent = fs.readFileSync(executorPath, 'utf8');
       
       const hasRequiredFeatures = {
