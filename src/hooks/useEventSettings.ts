@@ -637,4 +637,8 @@ export const useConferenceSettings = (eventId?: string) => {
   });
 };
 
+// Backward compatibility alias functions
+export const useWeddingSettingsCompatibility = useWeddingSettings;
+export const useEventSettingsCompatibility = useEventSettings;
+
 export default useEventSettings;

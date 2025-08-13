@@ -1,3 +1,12 @@
+// ================================================================================================
+// GENERIC EVENT CONTENT HOOK - PHASE 2.3 TRANSFORMATION
+// ================================================================================================
+// This hook provides comprehensive event content management for the Generic Event Management Engine
+// Part of Phase 2.3 TFD Implementation with comprehensive compatibility layer
+// Supports wedding, conference, birthday, seminar, and other event types
+// Features: backward compatibility, loading states, error handling, TypeScript interfaces
+// ================================================================================================
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
@@ -194,6 +203,7 @@ export const useEventContent = (eventType?: string) => {
   const [heroSettings, setHeroSettings] = useState<EventHeroSettings | null>(null);
   const [activePlugin, setActivePlugin] = useState<EventPlugin | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Dual loading state for consistent patterns
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -409,6 +419,7 @@ export const useEventContent = (eventType?: string) => {
   const fetchAllEventData = async () => {
     try {
       setIsLoading(true);
+      setLoading(true); // Dual loading state for consistent patterns
       setError(null);
 
       // Support multiple event types: wedding, conference, birthday, corporate, etc.
@@ -798,6 +809,7 @@ export const useEventContent = (eventType?: string) => {
       setError('Failed to load event content');
     } finally {
       setIsLoading(false);
+      setLoading(false); // Dual loading state for consistent patterns
     }
   };
 
@@ -857,6 +869,7 @@ export const useEventContent = (eventType?: string) => {
     activePlugin,
     
     // State
+    loading,
     isLoading,
     error,
     
@@ -871,3 +884,18 @@ export const useEventContent = (eventType?: string) => {
     eventType: eventType || activePlugin?.type || 'generic',
   };
 };
+
+// ================================================================================================
+// LEGACY COMPATIBILITY LAYER
+// ================================================================================================
+
+// Wedding-specific content hook that uses the generic event content hook
+export const useWeddingContent = (eventId?: string) => {
+  return useEventContent('wedding');
+};
+
+// Backward compatibility aliases
+export const useWeddingContentCompatibility = useWeddingContent;
+export const useEventContentCompatibility = useEventContent;
+
+export default useEventContent;

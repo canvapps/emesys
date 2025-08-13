@@ -628,7 +628,7 @@ export const useWeddingParticipants = (eventId?: string) => {
   });
 };
 
-// Conference-specific hook for speakers management  
+// Conference-specific hook for speakers management
 export const useConferenceSpeakers = (eventId?: string) => {
   return useEventParticipants({
     eventId,
@@ -636,5 +636,9 @@ export const useConferenceSpeakers = (eventId?: string) => {
     filters: { participant_type: 'speaker', is_visible: true }
   });
 };
+
+// Backward compatibility aliases
+export const useWeddingParticipantsCompatibility = useWeddingParticipants;
+export const useEventParticipantsCompatibility = useEventParticipants;
 
 export default useEventParticipants;
