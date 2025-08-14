@@ -56,7 +56,7 @@ import { DatabaseConnection } from '@/database/connection';
 // Create connection instance
 const db = new DatabaseConnection({
   host: 'localhost',
-  database: 'weddinvite_enterprise',
+  database: 'emesys_dev',
   user: 'postgres',
   password: 'your_password'
 });
@@ -228,7 +228,7 @@ import { executeQuery, getConnection, closeAllConnections } from '@/__tests__/ut
 
 // Tests use the same connection patterns
 const connection = new DatabaseConnection({
-  database: 'weddinvite_enterprise_test'
+  database: 'emesys_dev_test'
 });
 ```
 

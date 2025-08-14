@@ -12,7 +12,16 @@
 import { useEventContent } from '../useEventContent';
 import { useEventHero } from '../useEventHero';
 import { weddingPlugin, pluginUtils } from './weddingPlugin';
-import { DatabaseMode, createCompatibilityManager } from '../../database/compatibility-mode';
+// Stub import untuk compatibility - akan diimplementasikan di FASE 2
+// import { DatabaseMode, createCompatibilityManager } from '../../database/compatibility/compatibility-mode';
+
+// Stub implementations for compatibility
+type DatabaseMode = 'legacy' | 'generic' | 'hybrid';
+
+const createCompatibilityManager = (supabase: any, config: any) => ({
+  transformData: (data: any) => data,
+  getMode: () => 'hybrid' as DatabaseMode
+});
 import { supabase } from '@/integrations/supabase/client';
 import type {
   EventParticipants,

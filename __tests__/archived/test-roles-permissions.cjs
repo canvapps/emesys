@@ -9,7 +9,7 @@ console.log('🚀 Testing Roles & Permissions System...');
 const client = new Client({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'weddinvite_enterprise',
+  database: process.env.DB_NAME || 'emesys_dev',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'admin'
 });

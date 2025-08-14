@@ -1,0 +1,637 @@
+#!/usr/bin/env node
+
+/**
+ * Trinity Protocol CLI
+ * Universal Development Quality Assurance Framework
+ * 
+ * @author CanvaStack
+ * @version 1.0.0
+ */
+
+const { program } = require('commander');
+const path = require('path');
+const { existsSync } = require('fs');
+
+// Import Trinity Core dari dist setelah build
+const trinityCorePath = path.join(__dirname, '..', 'dist', 'index.js');
+
+// Fallback ke src untuk development
+const trinitySrcPath = path.join(__dirname, '..', 'src', 'index.ts');
+
+let TrinityCore;
+
+try {
+    if (existsSync(trinityCorePath)) {
+        TrinityCore = require(trinityCorePath);
+    } else if (existsSync(trinitySrcPath)) {
+        // Development mode dengan ts-node
+        require('ts-node/register');
+        TrinityCore = require(trinitySrcPath);
+    } else {
+        console.error('❌ Trinity Core tidak ditemukan. Jalankan npm run build terlebih dahulu.');
+        process.exit(1);
+    }
+} catch (error) {
+    console.error('❌ Error loading Trinity Core:', error.message);
+    process.exit(1);
+}
+
+const { TrinityValidator, TrinityConfig, TrinityReporter } = TrinityCore;
+
+program
+    .name('trinity')
+    .description('Trinity Protocol - Universal Development Quality Assurance Framework')
+    .version('1.0.0');
+
+/**
+ * Command: trinity validate
+ * Melakukan validasi Trinity Protocol pada project
+ */
+program
+    .command('validate')
+    .description('Validasi Trinity Protocol compliance pada project')
+    .option('-p, --project <path>', 'Path ke project directory', process.cwd())
+    .option('-c, --config <path>', 'Path ke Trinity config file')
+    .option('-f, --format <type>', 'Output format (console|json|html)', 'console')
+    .option('-o, --output <path>', 'Output file path untuk report')
+    .option('-v, --verbose', 'Tampilkan detail verbose')
+    .option('--no-cache', 'Disable cache untuk fresh validation')
+    .option('-m, --mode <type>', 'Validation mode (comprehensive|pre-commit|pre-push|mid-dev)', 'comprehensive')
+    .option('--threshold <score>', 'Minimum Trinity score threshold', '90')
+    .option('--watch', 'Run in continuous watch mode')
+    .option('--files <patterns>', 'Validate only specific file patterns (comma separated)')
+    .action(async (options) => {
+        try {
+            // Mode-specific console messages
+            const modeMessages = {
+                'comprehensive': '🔍 Starting comprehensive Trinity Protocol validation...',
+                'pre-commit': '⚡ Running fast pre-commit validation...',
+                'pre-push': '🚀 Running pre-push validation...',
+                'mid-dev': '🔄 Running development-time validation...'
+            };
+            
+            console.log(modeMessages[options.mode] || modeMessages.comprehensive);
+            console.log(`📊 Threshold: ${options.threshold}%\n`);
+            
+            // Initialize Trinity Config
+            const config = new TrinityConfig(options.project);
+            await config.load(options.config);
+            
+            // Parse file patterns if provided
+            const filePatterns = options.files ? options.files.split(',').map(p => p.trim()) : null;
+            
+            // Initialize Trinity Validator
+            const validator = new TrinityValidator(config);
+            
+            // Run validation with mode-specific options
+            const validationOptions = {
+                useCache: !options.noCache,
+                verbose: options.verbose,
+                mode: options.mode,
+                filePatterns: filePatterns,
+                threshold: parseInt(options.threshold)
+            };
+            
+            // Watch mode integration
+            if (options.watch) {
+                return await startWatchValidation(validator, options, validationOptions);
+            }
+            
+            const result = await validator.validateProject(validationOptions);
+            
+            // Initialize Reporter
+            const reporter = new TrinityReporter();
+            
+            // Generate report
+            if (options.output) {
+                await reporter.generateReport(result, {
+                    format: options.format,
+                    outputPath: options.output,
+                    verbose: options.verbose,
+                    mode: options.mode
+                });
+                console.log(`\n📊 Report generated: ${options.output}`);
+            } else {
+                reporter.printConsoleReport(result, {
+                    verbose: options.verbose,
+                    mode: options.mode
+                });
+            }
+            
+            // Mode-specific threshold handling
+            const threshold = parseInt(options.threshold);
+            const passed = result.overallScore >= threshold;
+            
+            if (passed) {
+                console.log(`\n✅ Trinity validation passed! Score: ${result.overallScore}%`);
+            } else {
+                console.log(`\n❌ Trinity validation failed! Score: ${result.overallScore}% (threshold: ${threshold}%)`);
+            }
+            
+            // Exit dengan appropriate code
+            const exitCode = passed ? 0 : 1;
+            process.exit(exitCode);
+            
+        } catch (error) {
+            console.error('❌ Validation error:', error.message);
+            if (options.verbose) {
+                console.error(error.stack);
+            }
+            process.exit(1);
+        }
+    });
+
+/**
+ * Start watch mode validation
+ */
+async function startWatchValidation(validator, options, validationOptions) {
+    console.log('👀 Starting Trinity Protocol watch mode...\n');
+    console.log('Press Ctrl+C to stop watching.\n');
+    
+    // Setup file watcher
+    const chokidar = require('chokidar');
+    
+    const ignorePatterns = [
+        'node_modules/**', 'dist/**', '.git/**', 'coverage/**',
+        '**/*.log', '**/tmp/**', '**/.cache/**'
+    ];
+    
+    const watcher = chokidar.watch(options.project, {
+        ignored: ignorePatterns,
+        persistent: true,
+        ignoreInitial: true
+    });
+    
+    let validationTimeout;
+    let lastValidationTime = 0;
+    const minIntervalMs = 100; // Sub-100ms response target
+    
+    const runValidation = async () => {
+        const now = Date.now();
+        if (now - lastValidationTime < minIntervalMs) {
+            return; // Skip if too frequent
+        }
+        lastValidationTime = now;
+        
+        try {
+            const startTime = Date.now();
+            const result = await validator.validateProject({
+                ...validationOptions,
+                useCache: true // Always use cache in watch mode
+            });
+            const duration = Date.now() - startTime;
+            
+            const reporter = new TrinityReporter();
+            
+            console.clear();
+            console.log(`👀 Trinity Protocol - Watch Mode (${options.mode})`);
+            console.log(`⚡ Response time: ${duration}ms\n`);
+            
+            reporter.printConsoleReport(result, {
+                compact: true,
+                mode: options.mode
+            });
+            
+            const threshold = parseInt(options.threshold);
+            const statusEmoji = result.overallScore >= threshold ? '✅' : '❌';
+            console.log(`\n${statusEmoji} Score: ${result.overallScore}% (threshold: ${threshold}%)`);
+            console.log('✨ Watching for changes...');
+            
+        } catch (error) {
+            console.error('❌ Watch validation error:', error.message);
+        }
+    };
+    
+    // Debounced validation dengan sub-100ms target
+    const scheduleValidation = () => {
+        clearTimeout(validationTimeout);
+        validationTimeout = setTimeout(runValidation, 50); // 50ms debounce
+    };
+    
+    // Watch events
+    watcher
+        .on('add', scheduleValidation)
+        .on('change', scheduleValidation)
+        .on('unlink', scheduleValidation);
+    
+    // Initial validation
+    await runValidation();
+    
+    // Graceful shutdown
+    process.on('SIGINT', () => {
+        console.log('\n\n👋 Stopping Trinity watch mode...');
+        watcher.close();
+        process.exit(0);
+    });
+}
+
+/**
+ * Command: trinity init
+ * Inisialisasi Trinity Protocol configuration untuk project baru
+ */
+program
+    .command('init')
+    .description('Inisialisasi Trinity Protocol configuration untuk project')
+    .option('-p, --project <path>', 'Path ke project directory', process.cwd())
+    .option('-t, --template <type>', 'Template type (javascript|typescript|react|vue|node)', 'javascript')
+    .option('-f, --force', 'Force overwrite existing configuration')
+    .action(async (options) => {
+        try {
+            console.log('🚀 Initializing Trinity Protocol configuration...\n');
+            
+            const config = new TrinityConfig(options.project);
+            
+            // Check existing config
+            if (await config.exists() && !options.force) {
+                console.log('⚠️  Trinity configuration sudah ada. Gunakan --force untuk overwrite.');
+                return;
+            }
+            
+            // Initialize dengan template
+            await config.initialize({
+                template: options.template,
+                projectPath: options.project
+            });
+            
+            console.log('✅ Trinity Protocol configuration berhasil diinisialisasi!');
+            console.log('\nNext steps:');
+            console.log('  1. Review trinity.config.js file');
+            console.log('  2. Run: trinity validate');
+            console.log('  3. Setup git hooks (optional): trinity setup-hooks\n');
+            
+        } catch (error) {
+            console.error('❌ Initialization error:', error.message);
+            process.exit(1);
+        }
+    });
+
+/**
+ * Command: trinity watch
+ * Watch mode untuk continuous validation
+ */
+program
+    .command('watch')
+    .description('Watch mode untuk continuous Trinity validation')
+    .option('-p, --project <path>', 'Path ke project directory', process.cwd())
+    .option('-c, --config <path>', 'Path ke Trinity config file')
+    .option('-i, --ignore <patterns>', 'Ignore patterns (comma separated)')
+    .option('-d, --debounce <ms>', 'Debounce time dalam milliseconds', '300')
+    .action(async (options) => {
+        try {
+            console.log('👀 Starting Trinity Protocol watch mode...\n');
+            console.log('Press Ctrl+C to stop watching.\n');
+            
+            // Initialize Trinity Config
+            const config = new TrinityConfig(options.project);
+            await config.load(options.config);
+            
+            // Initialize Trinity Validator
+            const validator = new TrinityValidator(config);
+            
+            // Setup file watcher
+            const chokidar = require('chokidar');
+            
+            const ignorePatterns = options.ignore 
+                ? options.ignore.split(',').map(p => p.trim())
+                : ['node_modules/**', 'dist/**', '.git/**', 'coverage/**'];
+            
+            const watcher = chokidar.watch(options.project, {
+                ignored: ignorePatterns,
+                persistent: true,
+                ignoreInitial: true
+            });
+            
+            let validationTimeout;
+            
+            const runValidation = async () => {
+                try {
+                    const result = await validator.validateProject({ useCache: true });
+                    const reporter = new TrinityReporter();
+                    
+                    console.clear();
+                    console.log('👀 Trinity Protocol - Watch Mode\n');
+                    reporter.printConsoleReport(result, { compact: true });
+                    console.log('\n✨ Watching for changes...');
+                    
+                } catch (error) {
+                    console.error('❌ Watch validation error:', error.message);
+                }
+            };
+            
+            // Debounced validation
+            const scheduleValidation = () => {
+                clearTimeout(validationTimeout);
+                validationTimeout = setTimeout(runValidation, parseInt(options.debounce));
+            };
+            
+            // Watch events
+            watcher
+                .on('add', () => scheduleValidation())
+                .on('change', () => scheduleValidation())
+                .on('unlink', () => scheduleValidation());
+            
+            // Initial validation
+            await runValidation();
+            
+            // Graceful shutdown
+            process.on('SIGINT', () => {
+                console.log('\n\n👋 Stopping Trinity watch mode...');
+                watcher.close();
+                process.exit(0);
+            });
+            
+        } catch (error) {
+            console.error('❌ Watch mode error:', error.message);
+            process.exit(1);
+        }
+    });
+
+/**
+ * Command: trinity pre-commit
+ * Fast validation untuk Git pre-commit hooks
+ */
+program
+    .command('pre-commit')
+    .description('Fast Trinity validation untuk pre-commit hooks')
+    .option('-p, --project <path>', 'Path ke project directory', process.cwd())
+    .option('-c, --config <path>', 'Path ke Trinity config file')
+    .option('--threshold <score>', 'Minimum Trinity score threshold', '80')
+    .option('--files <patterns>', 'Validate only specific file patterns (comma separated)')
+    .action(async (options) => {
+        try {
+            console.log('⚡ Running fast pre-commit validation...\n');
+            
+            const config = new TrinityConfig(options.project);
+            await config.load(options.config);
+            
+            const validator = new TrinityValidator(config);
+            const filePatterns = options.files ? options.files.split(',').map(p => p.trim()) : null;
+            
+            const result = await validator.validateProject({
+                mode: 'pre-commit',
+                filePatterns: filePatterns,
+                threshold: parseInt(options.threshold),
+                useCache: true // Always use cache for speed
+            });
+            
+            const reporter = new TrinityReporter();
+            reporter.printConsoleReport(result, { mode: 'pre-commit', compact: true });
+            
+            const threshold = parseInt(options.threshold);
+            const passed = result.overallScore >= threshold;
+            
+            if (passed) {
+                console.log(`\n⚡ Pre-commit validation passed! Score: ${result.overallScore}%`);
+                process.exit(0);
+            } else {
+                console.log(`\n❌ Pre-commit validation failed! Score: ${result.overallScore}% (threshold: ${threshold}%)`);
+                console.log('💡 Fix issues before committing or use --threshold to adjust.');
+                process.exit(1);
+            }
+            
+        } catch (error) {
+            console.error('❌ Pre-commit validation error:', error.message);
+            process.exit(1);
+        }
+    });
+
+/**
+ * Command: trinity pre-push
+ * Comprehensive validation untuk Git pre-push hooks
+ */
+program
+    .command('pre-push')
+    .description('Comprehensive Trinity validation untuk pre-push hooks')
+    .option('-p, --project <path>', 'Path ke project directory', process.cwd())
+    .option('-c, --config <path>', 'Path ke Trinity config file')
+    .option('--threshold <score>', 'Minimum Trinity score threshold', '90')
+    .action(async (options) => {
+        try {
+            console.log('🚀 Running comprehensive pre-push validation...\n');
+            
+            const config = new TrinityConfig(options.project);
+            await config.load(options.config);
+            
+            const validator = new TrinityValidator(config);
+            
+            const result = await validator.validateProject({
+                mode: 'pre-push',
+                threshold: parseInt(options.threshold),
+                useCache: false, // Fresh validation for push
+                verbose: true
+            });
+            
+            const reporter = new TrinityReporter();
+            reporter.printConsoleReport(result, { mode: 'pre-push', verbose: true });
+            
+            const threshold = parseInt(options.threshold);
+            const passed = result.overallScore >= threshold;
+            
+            if (passed) {
+                console.log(`\n🚀 Pre-push validation passed! Score: ${result.overallScore}%`);
+                console.log('✅ Safe to push to repository.');
+                process.exit(0);
+            } else {
+                console.log(`\n❌ Pre-push validation failed! Score: ${result.overallScore}% (threshold: ${threshold}%)`);
+                console.log('🔧 Fix critical issues before pushing.');
+                process.exit(1);
+            }
+            
+        } catch (error) {
+            console.error('❌ Pre-push validation error:', error.message);
+            process.exit(1);
+        }
+    });
+
+/**
+ * Command: trinity mid-dev
+ * Background validation selama development
+ */
+program
+    .command('mid-dev')
+    .description('Background Trinity validation untuk development workflow')
+    .option('-p, --project <path>', 'Path ke project directory', process.cwd())
+    .option('-c, --config <path>', 'Path ke Trinity config file')
+    .option('--threshold <score>', 'Minimum Trinity score threshold', '70')
+    .option('--watch', 'Enable continuous watch mode')
+    .action(async (options) => {
+        try {
+            console.log('🔄 Running development-time validation...\n');
+            
+            const config = new TrinityConfig(options.project);
+            await config.load(options.config);
+            
+            const validator = new TrinityValidator(config);
+            
+            const validationOptions = {
+                mode: 'mid-dev',
+                threshold: parseInt(options.threshold),
+                useCache: true // Always use cache for dev speed
+            };
+            
+            if (options.watch) {
+                return await startWatchValidation(validator, options, validationOptions);
+            }
+            
+            const result = await validator.validateProject(validationOptions);
+            
+            const reporter = new TrinityReporter();
+            reporter.printConsoleReport(result, { mode: 'mid-dev', compact: true });
+            
+            const threshold = parseInt(options.threshold);
+            const passed = result.overallScore >= threshold;
+            
+            if (passed) {
+                console.log(`\n🔄 Development validation passed! Score: ${result.overallScore}%`);
+            } else {
+                console.log(`\n⚠️  Development validation: Score: ${result.overallScore}% (threshold: ${threshold}%)`);
+                console.log('💡 Consider fixing issues during development.');
+            }
+            
+            // Mid-dev never fails the process
+            process.exit(0);
+            
+        } catch (error) {
+            console.error('❌ Mid-dev validation error:', error.message);
+            process.exit(0); // Don't fail during development
+        }
+    });
+
+/**
+ * Command: trinity setup-hooks
+ * Setup Git pre-commit dan pre-push hooks
+ */
+program
+    .command('setup-hooks')
+    .description('Setup Git hooks untuk automatic Trinity validation')
+    .option('-p, --project <path>', 'Path ke project directory', process.cwd())
+    .option('--pre-commit', 'Setup pre-commit hook only')
+    .option('--pre-push', 'Setup pre-push hook only')
+    .action(async (options) => {
+        try {
+            console.log('⚙️  Setting up Git hooks for Trinity Protocol...\n');
+            
+            const fs = require('fs').promises;
+            const hooksDir = path.join(options.project, '.git', 'hooks');
+            
+            // Check if .git directory exists
+            if (!existsSync(path.join(options.project, '.git'))) {
+                console.error('❌ Not a git repository. Initialize git first: git init');
+                process.exit(1);
+            }
+            
+            // Ensure hooks directory exists
+            await fs.mkdir(hooksDir, { recursive: true });
+            
+            // Pre-commit hook
+            if (!options.prePush) {
+                const preCommitPath = path.join(hooksDir, 'pre-commit');
+                const preCommitScript = `#!/bin/sh
+# Trinity Protocol Pre-commit Hook
+
+echo "⚡ Running Trinity Protocol pre-commit validation..."
+trinity pre-commit --threshold 80
+
+if [ $? -ne 0 ]; then
+    echo "❌ Trinity Protocol pre-commit validation failed."
+    echo "💡 Fix issues or adjust threshold with: trinity pre-commit --threshold 70"
+    exit 1
+fi
+
+echo "✅ Trinity Protocol pre-commit validation passed!"
+exit 0
+`;
+                
+                await fs.writeFile(preCommitPath, preCommitScript, { mode: 0o755 });
+                console.log('✅ Pre-commit hook installed');
+            }
+            
+            // Pre-push hook
+            if (!options.preCommit) {
+                const prePushPath = path.join(hooksDir, 'pre-push');
+                const prePushScript = `#!/bin/sh
+# Trinity Protocol Pre-push Hook
+
+echo "🚀 Running comprehensive Trinity Protocol pre-push validation..."
+trinity pre-push --threshold 90
+
+if [ $? -ne 0 ]; then
+    echo "❌ Trinity Protocol pre-push validation failed. Push aborted."
+    echo "🔧 Fix critical issues before pushing."
+    exit 1
+fi
+
+echo "✅ Trinity Protocol validation passed! Safe to push."
+exit 0
+`;
+                
+                await fs.writeFile(prePushPath, prePushScript, { mode: 0o755 });
+                console.log('✅ Pre-push hook installed');
+            }
+            
+            console.log('\n🎉 Git hooks berhasil disetup!');
+            console.log('Trinity Protocol akan otomatis memvalidasi code sebelum commit/push.\n');
+            
+        } catch (error) {
+            console.error('❌ Hook setup error:', error.message);
+            process.exit(1);
+        }
+    });
+
+/**
+ * Command: trinity info
+ * Tampilkan informasi tentang Trinity Protocol dan project status
+ */
+program
+    .command('info')
+    .description('Tampilkan informasi Trinity Protocol dan project status')
+    .option('-p, --project <path>', 'Path ke project directory', process.cwd())
+    .action(async (options) => {
+        try {
+            console.log('ℹ️  Trinity Protocol Information\n');
+            
+            const config = new TrinityConfig(options.project);
+            const hasConfig = await config.exists();
+            
+            console.log('📦 Project Information:');
+            console.log(`   Path: ${options.project}`);
+            console.log(`   Trinity Config: ${hasConfig ? '✅ Found' : '❌ Not found'}`);
+            
+            if (hasConfig) {
+                await config.load();
+                const projectInfo = config.getProjectInfo();
+                
+                console.log(`   Project Type: ${projectInfo.type}`);
+                console.log(`   Language: ${projectInfo.language}`);
+                console.log(`   Framework: ${projectInfo.framework || 'None'}`);
+                
+                console.log('\n⚙️  Trinity Configuration:');
+                console.log(`   Validation Mode: ${config.validation.mode}`);
+                console.log(`   Strict Mode: ${config.validation.strict ? '✅' : '❌'}`);
+                console.log(`   Auto Fix: ${config.validation.autoFix ? '✅' : '❌'}`);
+            }
+            
+            console.log('\n📚 Available Commands:');
+            console.log('   trinity init          - Initialize Trinity configuration');
+            console.log('   trinity validate      - Run comprehensive validation');
+            console.log('   trinity pre-commit    - Fast pre-commit validation (80% threshold)');
+            console.log('   trinity pre-push      - Comprehensive pre-push validation (90% threshold)');
+            console.log('   trinity mid-dev       - Development-time validation (70% threshold)');
+            console.log('   trinity watch         - Watch mode validation');
+            console.log('   trinity setup-hooks   - Setup Git hooks');
+            console.log('   trinity info          - Show this information\n');
+            
+        } catch (error) {
+            console.error('❌ Info command error:', error.message);
+            process.exit(1);
+        }
+    });
+
+// Parse command line arguments
+program.parse();
+
+// Show help if no command provided
+if (!process.argv.slice(2).length) {
+    program.outputHelp();
+    process.exit(0); // Exit dengan success code untuk help
+}

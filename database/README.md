@@ -112,13 +112,13 @@ Seeders populate the database with initial or test data:
 1. **Database Setup:**
    ```bash
    # 1. Create PostgreSQL database
-   createdb weddinvite_enterprise
+   createdb emesys_dev
    
    # 2. Run all migrations
    node src/database/migrate.ts
    
    # 3. Run seeders (optional)
-   psql -d weddinvite_enterprise -f database/seeders/001_initial_super_admin.sql
+   psql -d emesys_dev -f database/seeders/001_initial_super_admin.sql
    ```
 
 2. **Understanding the Structure:**
@@ -166,7 +166,7 @@ The Event Management Engine uses a multi-tenant architecture with the following 
    node src/database/connection.ts
    
    # Verify migration syntax
-   psql -d weddinvite_enterprise -f database/migrations/XXX_migration_name.sql
+   psql -d emesys_dev -f database/migrations/XXX_migration_name.sql
    ```
 
 2. **Permission Denied:**

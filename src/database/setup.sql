@@ -2,13 +2,13 @@
 -- This script should be run to create the initial database structure
 
 -- Create main database
-CREATE DATABASE weddinvite_enterprise;
+CREATE DATABASE emesys_dev;
 
 -- Create test database
-CREATE DATABASE weddinvite_enterprise_test;
+CREATE DATABASE emesys_dev_test;
 
 -- Connect to main database
-\c weddinvite_enterprise;
+\c emesys_dev;
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -28,7 +28,7 @@ $$ LANGUAGE plpgsql;
 SELECT health_check();
 
 -- Connect to test database and setup the same
-\c weddinvite_enterprise_test;
+\c emesys_dev_test;
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -48,5 +48,5 @@ $$ LANGUAGE plpgsql;
 SELECT health_check();
 
 -- Grant necessary permissions (adjust user as needed)
--- GRANT ALL PRIVILEGES ON DATABASE weddinvite_enterprise TO postgres;
--- GRANT ALL PRIVILEGES ON DATABASE weddinvite_enterprise_test TO postgres;
+-- GRANT ALL PRIVILEGES ON DATABASE emesys_dev TO postgres;
+-- GRANT ALL PRIVILEGES ON DATABASE emesys_dev_test TO postgres;

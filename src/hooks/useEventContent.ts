@@ -10,10 +10,33 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
-import { createGenericQueryManager, EventTypeFilters } from '../database/generic-queries';
-import { SupportedEventType, EventTypeUtils, EVENT_TYPE_REGISTRY } from '../database/event-type-filter';
-import { createMultiEventSupportManager, DEFAULT_MULTI_EVENT_CONFIG } from '../database/multi-event-support';
-import { DatabaseMode, createCompatibilityManager } from '../database/compatibility-mode';
+// Stub imports untuk compatibility - will be implemented in FASE 2
+// import { createGenericQueryManager, EventTypeFilters } from '../database/queries/generic-queries';
+// import { SupportedEventType, EventTypeUtils, EVENT_TYPE_REGISTRY } from '../database/queries/event-type-filter';
+// import { createMultiEventSupportManager, DEFAULT_MULTI_EVENT_CONFIG } from '../database/queries/multi-event-support';
+// import { DatabaseMode, createCompatibilityManager } from '../database/compatibility/compatibility-mode';
+
+// Stub implementations for compatibility
+const createGenericQueryManager = (supabase: any) => ({
+  participants: {
+    getParticipants: async (params: any) => ({ data: [], error: null })
+  }
+});
+
+const EVENT_TYPE_REGISTRY = { wedding: 'wedding', conference: 'conference' };
+type SupportedEventType = keyof typeof EVENT_TYPE_REGISTRY;
+
+const createMultiEventSupportManager = (supabase: any, config: any) => ({
+  getEvents: async () => ({ data: [], error: null })
+});
+
+const DEFAULT_MULTI_EVENT_CONFIG = { tenantId: '' };
+
+const createCompatibilityManager = (mode: string) => ({
+  transformData: (data: any) => data
+});
+
+type DatabaseMode = 'legacy' | 'generic';
 
 // ========================================
 // GENERIC EVENT MANAGEMENT ENGINE TYPES

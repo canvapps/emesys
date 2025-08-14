@@ -10,17 +10,23 @@
  */
 
 // Connection utilities
-export { DatabaseConnection, dbConnection } from './connection';
-export type { DatabaseConfig } from './connection';
+export { DatabaseConnectionFactory, ConnectionManager } from './connection';
+export type { DatabaseConnection, ConnectionConfig } from './connection';
 
-// Migration utilities
-export { MigrationRunner } from './migrate';
+// Migration utilities (disabled until FASE 2)
+// export * from './migrate';
 
-// Models (will be populated during transformation)
-// export * from './models';
+// Models
+export { default as Models } from './models';
+export type { RSVPModel, SessionModel } from './models';
 
-// Repositories (will be populated during transformation)  
-// export * from './repositories';
+// Repositories
+export { default as BaseRepository } from './repositories';
+export type { Repository } from './repositories';
+
+// Database Adapter
+export { DatabaseAdapterFactory } from './database-adapter';
+export type { DatabaseAdapter } from './database-adapter';
 
 /**
  * Usage Examples:

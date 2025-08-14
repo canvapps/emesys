@@ -16,7 +16,7 @@ require('dotenv').config({ path: '.env.local' });
 const config = {
     user: process.env.DB_USER || 'postgres',
     host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'weddinvite_enterprise',
+    database: process.env.DB_NAME || 'emesys_dev',
     password: process.env.DB_PASSWORD || 'admin',
     port: process.env.DB_PORT || 5432,
 };

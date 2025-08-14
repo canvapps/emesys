@@ -22,7 +22,12 @@
     "db:setup": "npm run db:migrate:enhanced && npm run db:seed",
     "db:reset": "node run-migrations.cjs && npm run db:seed",
     "db:test": "node test-enhanced-migration-simple.cjs",
-    "db:test:full": "node test-enhanced-migration-system.cjs"
+    "db:test:full": "node test-enhanced-migration-system.cjs",
+    "trinity:validate": "node scripts/trinity-validation.cjs all",
+    "trinity:pre-commit": "node scripts/trinity-validation.cjs pre-commit",
+    "trinity:pre-push": "node scripts/trinity-validation.cjs pre-push",
+    "trinity:mid-dev": "node scripts/trinity-validation.cjs mid-dev",
+    "trinity:setup": "node scripts/setup-trinity-hooks.cjs"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -89,6 +94,9 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
+    "@testing-library/jest-dom": "^6.7.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.17.1",
     "@types/pg": "^8.11.6",
     "@types/react": "^18.3.3",
@@ -101,6 +109,7 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
+    "jsdom": "^26.1.0",
     "lovable-tagger": "^1.1.7",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.11",

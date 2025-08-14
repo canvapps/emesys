@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Trinity Protocol Pre-push Hook  
+# Comprehensive validation before pushing to remote repository
+
+echo "🛡️  Trinity Protocol: Pre-push validation starting..."
+
+# Set colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+NC='\033[0m' # No Color
+
+# Check if node is available
+if ! command -v node &> /dev/null; then
+    echo -e "${RED}❌ Node.js is required for Trinity validation${NC}"
+    exit 1
+fi
+
+# Check if trinity validation script exists
+TRINITY_SCRIPT="scripts/trinity-validation.cjs"
+if [ ! -f "$TRINITY_SCRIPT" ]; then
+    echo -e "${RED}❌ Trinity validation script not found: $TRINITY_SCRIPT${NC}"
+    echo "Please ensure Trinity Protocol is properly installed"
+    exit 1
+fi
+
+echo -e "${PURPLE}🚀 Pre-push Trinity Protocol validation...${NC}"
+echo -e "${BLUE}This includes full test suite execution and synchronization check${NC}"
+echo ""
+
+# Run Trinity pre-push validation (includes test suite)
+echo -e "${BLUE}🧪 Running comprehensive Trinity validation...${NC}"
+if node "$TRINITY_SCRIPT" pre-push; then
+    echo -e "${GREEN}✅ Trinity pre-push validation passed!${NC}"
+    
+    # Show Trinity score summary
+    echo -e "${PURPLE}📊 Trinity Protocol compliance verified${NC}"
+    echo -e "${GREEN}🎯 Ready to push to remote repository${NC}"
+    
+else
+    echo -e "${RED}❌ Trinity pre-push validation failed!${NC}"
+    echo ""
+    echo -e "${YELLOW}🚫 Push blocked by Trinity Protocol${NC}"
+    echo ""
+    echo "Common issues to check:"
+    echo "• Test suite failures"
+    echo "• Trinity synchronization gaps"
+    echo "• Missing documentation updates"
+    echo "• Import path resolution errors"
+    echo ""
+    echo "Run these commands to debug:"
+    echo "  npm test                    # Check test suite"
+    echo "  npm run trinity:validate    # Full Trinity validation"
+    echo "  npm run trinity:mid-dev     # Development validation"
+    exit 1
+fi
+
+# Additional security check for sensitive files
+echo -e "${BLUE}🔐 Checking for sensitive data...${NC}"
+SENSITIVE_PATTERNS="password|secret|api_key|private_key|token"
+COMMITS_TO_PUSH=$(git rev-list @{u}..HEAD 2>/dev/null || git rev-list HEAD | head -10)
+
+if [ -n "$COMMITS_TO_PUSH" ]; then
+    for COMMIT in $COMMITS_TO_PUSH; do
+        SENSITIVE_FOUND=$(git show --name-only --pretty=format: $COMMIT | xargs -I {} sh -c 'if [ -f "{}" ]; then grep -l -i -E "'$SENSITIVE_PATTERNS'" "{}" 2>/dev/null || true; fi' | head -5)
+        
+        if [ -n "$SENSITIVE_FOUND" ]; then
+            echo -e "${YELLOW}⚠️  Potential sensitive data in commit $COMMIT:${NC}"
+            echo "$SENSITIVE_FOUND" | head -3
+            echo ""
+            echo "Please review these files before pushing"
+        fi
+    done
+fi
+
+# Check branch protection
+CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+    echo -e "${YELLOW}⚠️  Pushing to protected branch: $CURRENT_BRANCH${NC}"
+    echo -e "${BLUE}🛡️  Trinity Protocol ensures code quality on main branches${NC}"
+fi
+
+echo ""
+echo -e "${GREEN}🎉 Pre-push Trinity validation completed successfully!${NC}"
+echo -e "${PURPLE}📡 Ready to push with full Trinity Protocol compliance${NC}"
+exit 0

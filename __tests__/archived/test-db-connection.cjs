@@ -8,14 +8,14 @@ console.log('🔗 Testing Database Connection...');
 console.log('📍 Config:');
 console.log('  Host:', process.env.DB_HOST || 'localhost');
 console.log('  Port:', process.env.DB_PORT || '5432');
-console.log('  Database:', process.env.DB_NAME || 'weddinvite_enterprise');
+console.log('  Database:', process.env.DB_NAME || 'emesys_dev');
 console.log('  User:', process.env.DB_USER || 'postgres');
 console.log('  Password:', process.env.DB_PASSWORD ? '***' : 'NOT SET');
 
 const client = new Client({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'weddinvite_enterprise',
+  database: process.env.DB_NAME || 'emesys_dev',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'admin'
 });

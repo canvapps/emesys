@@ -32,7 +32,7 @@ async function runTests() {
     // Setup
     console.log('📝 Setting up database connection...');
     db = new DatabaseConnection({
-      database: process.env.TEST_DB_NAME || 'weddinvite_enterprise_test',
+      database: process.env.TEST_DB_NAME || 'emesys_dev_test',
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5432'),
       user: process.env.TEST_DB_USER || process.env.DB_USER || 'postgres',

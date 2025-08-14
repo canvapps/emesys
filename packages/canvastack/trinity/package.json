@@ -1,0 +1,85 @@
+{
+  "name": "@canvastack/trinity",
+  "version": "1.0.0",
+  "description": "Trinity Protocol - Universal Development Quality Assurance Framework",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "trinity": "bin/trinity"
+  },
+  "files": [
+    "dist/**/*",
+    "bin/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "build:dev": "npm run compile -- --incremental",
+    "build:prod": "npm run clean && npm run compile && npm run validate:build",
+    "build:watch": "npm run compile -- --watch",
+    "compile": "tsc",
+    "test": "jest __tests__/core/ --passWithNoTests",
+    "test:fast": "jest __tests__/core/validator.test.ts --passWithNoTests",
+    "test:full": "jest",
+    "test:coverage": "jest --coverage",
+    "test:cli": "jest __tests__/cli.test.ts",
+    "test:integration": "npm run build && node bin/trinity validate --project . --threshold 90",
+    "dev": "npm run build:dev && npm run test:fast",
+    "dev:watch": "concurrently \"npm run build:watch\" \"npm run test:fast -- --watch\"",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
+    "validate:build": "node -e \"require('./dist/index.js'); console.log('✅ Build validation passed')\"",
+    "validate:types": "tsc --noEmit",
+    "docs:api": "typedoc src/index.ts --out docs/api",
+    "docs:build": "npm run docs:api",
+    "clean": "rimraf dist coverage docs/api",
+    "prepack": "npm run build:prod && npm run test:coverage",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint && npm run test:full && npm run validate:build"
+  },
+  "keywords": [
+    "trinity-protocol",
+    "code-quality",
+    "validation",
+    "testing",
+    "development",
+    "framework",
+    "typescript"
+  ],
+  "author": "CanvaStack <support@canvastack.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.19",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.25.8",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "chokidar": "^3.6.0",
+    "commander": "^12.0.0",
+    "glob": "^10.3.10"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/canvastack/trinity.git"
+  },
+  "bugs": {
+    "url": "https://github.com/canvastack/trinity/issues"
+  },
+  "homepage": "https://github.com/canvastack/trinity#readme"
+}
