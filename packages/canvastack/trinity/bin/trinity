@@ -120,12 +120,13 @@ program
             
             // Mode-specific threshold handling
             const threshold = parseInt(options.threshold);
-            const passed = result.overallScore >= threshold;
+            const actualScore = result.overallScore || 0; // Fallback untuk undefined score
+            const passed = actualScore >= threshold;
             
             if (passed) {
-                console.log(`\n✅ Trinity validation passed! Score: ${result.overallScore}%`);
+                console.log(`\n✅ Trinity validation passed! Score: ${actualScore}%`);
             } else {
-                console.log(`\n❌ Trinity validation failed! Score: ${result.overallScore}% (threshold: ${threshold}%)`);
+                console.log(`\n❌ Trinity validation failed! Score: ${actualScore}% (threshold: ${threshold}%)`);
             }
             
             // Exit dengan appropriate code

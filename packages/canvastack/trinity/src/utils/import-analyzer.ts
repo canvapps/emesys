@@ -35,15 +35,15 @@ export class ImportAnalyzer {
     
     // Match various import patterns
     const patterns = [
-      // ES6 imports: import ... from '...'
+      // ES6 imports: import {name} from 'path'
       /import\s+.*?\s+from\s+['"`]([^'"`]+)['"`]/g,
-      // Direct imports: import '...'
+      // Direct imports: import 'path'
       /import\s+['"`]([^'"`]+)['"`]/g,
-      // Dynamic imports: import('...')
+      // Dynamic imports: import('path')
       /import\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
-      // require() statements: require('...')
+      // require() statements: require('path')
       /require\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
-      // export from: export ... from '...'
+      // export from: export {name} from 'path'
       /export\s+.*?\s+from\s+['"`]([^'"`]+)['"`]/g
     ];
 
@@ -256,13 +256,13 @@ export class ImportAnalyzer {
     const names: string[] = [];
     const statement = importStatement.statement;
     
-    // Handle default imports: import Name from '...'
+    // Handle default imports: import Name from 'path'
     const defaultMatch = statement.match(/import\s+(\w+)\s+from/);
     if (defaultMatch) {
       names.push(defaultMatch[1]);
     }
     
-    // Handle named imports: import { name1, name2 } from '...'
+    // Handle named imports: import { name1, name2 } from 'path'
     const namedMatch = statement.match(/import\s*\{([^}]+)\}/);
     if (namedMatch) {
       const namedImports = namedMatch[1].split(',').map(name => {
@@ -272,7 +272,7 @@ export class ImportAnalyzer {
       names.push(...namedImports);
     }
     
-    // Handle namespace imports: import * as Name from '...'
+    // Handle namespace imports: import * as Name from 'path'
     const namespaceMatch = statement.match(/import\s+\*\s+as\s+(\w+)/);
     if (namespaceMatch) {
       names.push(namespaceMatch[1]);

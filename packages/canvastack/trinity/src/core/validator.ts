@@ -92,6 +92,23 @@ export class TrinityValidator {
   }
 
   /**
+   * Project validation entry point for CLI integration
+   */
+  async validateProject(options: any = {}): Promise<TrinityValidationResult> {
+    const mode = options.mode || 'all';
+    const threshold = options.threshold || TRINITY_CONSTANTS.MIN_TRINITY_SCORE;
+    
+    // Update options with provided values
+    this.options = {
+      ...this.options,
+      ...options,
+      minTrinityScore: threshold
+    };
+    
+    return await this.validate(mode);
+  }
+
+  /**
    * Reset validation state
    */
   private resetValidation(): void {

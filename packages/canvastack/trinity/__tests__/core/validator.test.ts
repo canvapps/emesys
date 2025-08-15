@@ -166,7 +166,7 @@ export class MathUtils {
  * Calculator Tests
  * @description Tests for Calculator class
  */
-import { Calculator, utils } from '../src/index';
+import { Calculator, utils } from '../../src/index';
 
 describe('Calculator', () => {
   let calculator: Calculator;

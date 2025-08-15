@@ -11,17 +11,25 @@ import { CLI_COLORS, VALIDATION_MESSAGES } from '../constants/validation-constan
 export class TrinityReporter {
   
   /**
+   * Print console report
+   */
+  printConsoleReport(result: TrinityValidationResult, options: { compact?: boolean, verbose?: boolean, mode?: string } = {}): void {
+    this.printHeader();
+    this.printOverallStatus(result, options);
+    this.printScoreBreakdown(result, options);
+    this.printLayerDetails(result, options);
+    this.printErrorsAndWarnings(result, options);
+    this.printRecommendations(result, options);
+    this.printFooter(result, options);
+  }
+
+  /**
    * Generate console report
    */
-  generateConsoleReport(result: TrinityValidationResult): void {
-    this.printHeader();
-    this.printOverallStatus(result);
-    this.printScoreBreakdown(result);
-    this.printLayerDetails(result);
-    this.printErrorsAndWarnings(result);
-    this.printRecommendations(result);
-    this.printFooter(result);
+  generateConsoleReport(result: TrinityValidationResult, options: { compact?: boolean, verbose?: boolean, mode?: string } = {}): void {
+    this.printConsoleReport(result, options);
   }
+
 
   /**
    * Generate JSON report
@@ -203,7 +211,7 @@ export class TrinityReporter {
   /**
    * Print overall status
    */
-  private printOverallStatus(result: TrinityValidationResult): void {
+  private printOverallStatus(result: TrinityValidationResult, options: { compact?: boolean, verbose?: boolean, mode?: string } = {}): void {
     const overallScore = result.score.overall || 0;
     const status = result.valid ? '✅ PASS' : '❌ FAIL';
     const color = result.valid ? CLI_COLORS.SUCCESS : CLI_COLORS.ERROR;
@@ -215,7 +223,7 @@ export class TrinityReporter {
   /**
    * Print score breakdown
    */
-  private printScoreBreakdown(result: TrinityValidationResult): void {
+  private printScoreBreakdown(result: TrinityValidationResult, options: { compact?: boolean, verbose?: boolean, mode?: string } = {}): void {
     console.log('\n📊 TRINITY SCORE BREAKDOWN:');
     console.log(`   🧪 Test Layer:          ${this.colorizeScore(result.score.test)}%`);
     console.log(`   ⚙️  Implementation:     ${this.colorizeScore(result.score.implementation)}%`);  
@@ -226,7 +234,7 @@ export class TrinityReporter {
   /**
    * Print layer details
    */
-  private printLayerDetails(result: TrinityValidationResult): void {
+  private printLayerDetails(result: TrinityValidationResult, options: { compact?: boolean, verbose?: boolean, mode?: string } = {}): void {
     console.log('\n📋 LAYER DETAILS:');
     
     Object.values(result.layers).forEach(layer => {
@@ -241,7 +249,7 @@ export class TrinityReporter {
   /**
    * Print errors and warnings
    */
-  private printErrorsAndWarnings(result: TrinityValidationResult): void {
+  private printErrorsAndWarnings(result: TrinityValidationResult, options: { compact?: boolean, verbose?: boolean, mode?: string } = {}): void {
     if (result.errors.length > 0) {
       console.log(`\n❌ ERRORS (${result.errors.length}):`);
       result.errors.forEach((error, i) => {
@@ -266,7 +274,7 @@ export class TrinityReporter {
   /**
    * Print recommendations
    */
-  private printRecommendations(result: TrinityValidationResult): void {
+  private printRecommendations(result: TrinityValidationResult, options: { compact?: boolean, verbose?: boolean, mode?: string } = {}): void {
     if (result.recommendations.length > 0) {
       console.log(`\n💡 RECOMMENDATIONS:`);
       result.recommendations.forEach((rec, i) => {
@@ -278,7 +286,7 @@ export class TrinityReporter {
   /**
    * Print footer
    */
-  private printFooter(result: TrinityValidationResult): void {
+  private printFooter(result: TrinityValidationResult, options: { compact?: boolean, verbose?: boolean, mode?: string } = {}): void {
     if (result.valid) {
       console.log(`\n${CLI_COLORS.SUCCESS}✅ Trinity validation passed! Ready to proceed.${CLI_COLORS.RESET}`);
     } else {
