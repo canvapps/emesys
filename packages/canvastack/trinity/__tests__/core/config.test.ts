@@ -79,6 +79,12 @@ describe('TrinityConfig', () => {
 
   describe('template handling', () => {
     it('should initialize with typescript template', async () => {
+      // Create directory first
+      const fs = require('fs');
+      if (!fs.existsSync(projectRoot)) {
+        fs.mkdirSync(projectRoot, { recursive: true });
+      }
+      
       await config.initialize({
         template: 'typescript',
         projectPath: projectRoot
@@ -87,9 +93,20 @@ describe('TrinityConfig', () => {
       const fullConfig = config.getConfig();
       expect(fullConfig.project.language).toBe('typescript');
       expect(fullConfig.patterns.testPatterns).toContain('**/*.test.ts');
+      
+      // Clean up
+      if (fs.existsSync(path.join(projectRoot, 'trinity.config.js'))) {
+        fs.unlinkSync(path.join(projectRoot, 'trinity.config.js'));
+      }
     });
 
     it('should initialize with react template', async () => {
+      // Create directory first
+      const fs = require('fs');
+      if (!fs.existsSync(projectRoot)) {
+        fs.mkdirSync(projectRoot, { recursive: true });
+      }
+      
       await config.initialize({
         template: 'react',
         projectPath: projectRoot
@@ -98,6 +115,11 @@ describe('TrinityConfig', () => {
       const fullConfig = config.getConfig();
       expect(fullConfig.project.framework).toBe('react');
       expect(fullConfig.patterns.testPatterns).toContain('**/*.test.{ts,tsx,js,jsx}');
+      
+      // Clean up
+      if (fs.existsSync(path.join(projectRoot, 'trinity.config.js'))) {
+        fs.unlinkSync(path.join(projectRoot, 'trinity.config.js'));
+      }
     });
   });
 });

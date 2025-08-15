@@ -23,11 +23,16 @@
     "db:reset": "node run-migrations.cjs && npm run db:seed",
     "db:test": "node test-enhanced-migration-simple.cjs",
     "db:test:full": "node test-enhanced-migration-system.cjs",
-    "trinity:validate": "node scripts/trinity-validation.cjs all",
+    "trinity:validate": "npx @canvastack/trinity validate",
     "trinity:pre-commit": "node scripts/trinity-validation.cjs pre-commit",
     "trinity:pre-push": "node scripts/trinity-validation.cjs pre-push",
     "trinity:mid-dev": "node scripts/trinity-validation.cjs mid-dev",
-    "trinity:setup": "node scripts/setup-trinity-hooks.cjs"
+    "trinity:setup": "node scripts/setup-trinity-hooks.cjs",
+    "trinity:init": "npx @canvastack/trinity init",
+    "trinity:watch": "npx @canvastack/trinity watch",
+    "trinity:report": "npx @canvastack/trinity validate --mode comprehensive --output json",
+    "test:trinity": "npm run test && npm run trinity:validate",
+    "dev:trinity": "npm run trinity:watch & npm run dev"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -89,7 +94,8 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^9.0.1",
     "vaul": "^0.9.3",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@canvastack/trinity": "file:./packages/canvastack/trinity"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

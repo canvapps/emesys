@@ -3,6 +3,7 @@
  * @module __tests__/core/reporter.test
  */
 
+import { describe, beforeEach, afterEach, jest, test, expect } from '@jest/globals';
 import { TrinityReporter } from '../../src/core/reporter';
 import { TrinityValidationResult, FileValidationResult } from '../../src/types/validation-result';
 import { VALIDATION_MESSAGES } from '../../src/constants/validation-constants';
@@ -174,7 +175,8 @@ describe('TrinityReporter', () => {
             expect(() => JSON.parse(jsonReport)).not.toThrow();
             
             const parsed = JSON.parse(jsonReport);
-            expect(parsed).toHaveProperty('score', 95);
+            expect(parsed).toHaveProperty('score');
+            expect(parsed.score).toHaveProperty('overall', 95);
             expect(parsed).toHaveProperty('valid', true);
             expect(parsed).toHaveProperty('timestamp');
         });

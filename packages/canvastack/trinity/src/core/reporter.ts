@@ -14,6 +14,11 @@ export class TrinityReporter {
    * Print console report
    */
   printConsoleReport(result: TrinityValidationResult, options: { compact?: boolean, verbose?: boolean, mode?: string } = {}): void {
+    if (!result) {
+      console.log('No validation result provided');
+      return;
+    }
+    
     this.printHeader();
     this.printOverallStatus(result, options);
     this.printScoreBreakdown(result, options);
@@ -212,6 +217,11 @@ export class TrinityReporter {
    * Print overall status
    */
   private printOverallStatus(result: TrinityValidationResult, options: { compact?: boolean, verbose?: boolean, mode?: string } = {}): void {
+    if (!result || !result.score) {
+      console.log('Invalid validation result');
+      return;
+    }
+    
     const overallScore = result.score.overall || 0;
     const status = result.valid ? '✅ PASS' : '❌ FAIL';
     const color = result.valid ? CLI_COLORS.SUCCESS : CLI_COLORS.ERROR;
